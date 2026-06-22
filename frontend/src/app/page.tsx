@@ -30,7 +30,7 @@ export default function Home() {
     peer_nodes: "24/24 Online",
     comms_health: "99.8%",
   });
-  
+
   // SSI verification states
   const [verification, setVerification] = useState<any>(null);
   const [isVerifying, setIsVerifying] = useState(false);
@@ -45,7 +45,7 @@ export default function Home() {
     // Poll hardware metrics from the API
     const fetchMetrics = async () => {
       try {
-        const res = await fetch("http://localhost:8000/api/system/metrics");
+        const res = await fetch("http://127.0.0.1:8000/api/system/metrics");
         if (res.ok) {
           const data = await res.json();
           setMetrics(data);
@@ -73,7 +73,7 @@ export default function Home() {
     }
 
     // Connect to dashboard operator broadcast stream
-    const ws = new WebSocket("ws://localhost:8000/ws/dashboard/stream");
+    const ws = new WebSocket("ws://127.0.0.1:8000/ws/dashboard/stream");
     wsRef.current = ws;
 
     ws.onopen = () => {
@@ -97,12 +97,12 @@ export default function Home() {
     ws.onmessage = (event) => {
       try {
         const payload = JSON.parse(event.data);
-        
+
         if (payload.type === "log_event") {
           const isAlert = payload.message.includes("ALERT") || payload.message.includes("BREACH") || payload.message.includes("ERROR");
           const isAuth = payload.message.includes("SSI") || payload.message.includes("AUTH");
           const logType = isAlert ? "alert" : isAuth ? "success" : "log";
-          
+
           setLogs((prev) => [
             ...prev.slice(-49),
             {
@@ -112,8 +112,8 @@ export default function Home() {
               type: logType
             }
           ]);
-        } 
-        
+        }
+
         else if (payload.type === "telemetry_feed") {
           const frame: TelemetryFrame = payload;
           setTourists((prev) => ({
@@ -183,9 +183,9 @@ export default function Home() {
       const surrounding_tourist_count = Math.max(0, 5 - Math.floor(ticks / 10));
 
       // Check geofence
-      const distance = ((simLat - 18.5204)**2 + (simLon - 73.8567)**2)**0.5;
+      const distance = ((simLat - 18.5204) ** 2 + (simLon - 73.8567) ** 2) ** 0.5;
       const geofenceBreach = distance > 0.01;
-      
+
       let anomalyDetected = geofenceBreach;
       let anomalyType = geofenceBreach ? "GEOFENCE BREACH WARNING" : null;
       let safetyScore = 0.88 - (distance * 10);
@@ -259,7 +259,7 @@ export default function Home() {
   const handleVerifyZkp = async () => {
     setIsVerifying(true);
     try {
-      const res = await fetch("http://localhost:8000/api/ssi/verify", {
+      const res = await fetch("http://127.0.0.1:8000/api/ssi/verify", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -270,7 +270,7 @@ export default function Home() {
       if (res.ok) {
         const data = await res.json();
         setVerification(data);
-        
+
         setLogs((prev) => [
           ...prev,
           {
@@ -313,23 +313,23 @@ export default function Home() {
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-zinc-950 text-zinc-100 font-sans select-none">
       {/* 1. Sidebar Component */}
-      <Sidebar 
-        activeTab={activeTab} 
-        setActiveTab={setActiveTab} 
-        metrics={metrics} 
+      <Sidebar
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        metrics={metrics}
       />
 
       {/* 2. Main Workspace */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header Component */}
-        <Header 
-          isConnected={isConnected} 
-          onReconnect={connectWebSocket} 
+        <Header
+          isConnected={isConnected}
+          onReconnect={connectWebSocket}
         />
 
         {/* Tab Switching Contents */}
         <main className="flex-1 p-5 overflow-y-auto space-y-5 bg-zinc-950">
-          
+
           {/* Top Info metrics strip */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="border border-zinc-800 bg-zinc-900/30 p-3 rounded-none font-mono">
@@ -339,13 +339,13 @@ export default function Home() {
                 STATUS: {isConnected ? "OPERATIONAL" : "OFFLINE_SIMULATION"}
               </div>
             </div>
-            
+
             <div className="border border-zinc-800 bg-zinc-900/30 p-3 rounded-none font-mono">
               <div className="text-[9px] text-zinc-500 font-bold uppercase tracking-wider mb-1">Active Monitors</div>
               <div className="text-base font-bold text-zinc-200">{activeTouristsList.length} Connected</div>
               <div className="text-[8px] text-zinc-500 mt-1">DIDs REGISTERED ON LEDGER</div>
             </div>
-            
+
             <div className="border border-zinc-800 bg-zinc-900/30 p-3 rounded-none font-mono">
               <div className="text-[9px] text-zinc-500 font-bold uppercase tracking-wider mb-1">ZKP Credentials</div>
               <div className="text-base font-bold text-zinc-200">
@@ -353,12 +353,11 @@ export default function Home() {
               </div>
               <div className="text-[8px] text-zinc-500 mt-1">SCHEMA: W3C TRUST REGISTRY</div>
             </div>
-            
-            <div className={`border p-3 rounded-none font-mono ${
-              activeThreatsCount > 0 
-                ? "border-red-900/40 bg-red-950/20 text-red-500 animate-pulse" 
+
+            <div className={`border p-3 rounded-none font-mono ${activeThreatsCount > 0
+                ? "border-red-900/40 bg-red-950/20 text-red-500 animate-pulse"
                 : "border-zinc-800 bg-zinc-900/30 text-zinc-400"
-            }`}>
+              }`}>
               <div className="text-[9px] font-bold uppercase tracking-wider mb-1">Anomalies Detected</div>
               <div className="text-base font-bold">{activeThreatsCount} ACTIVE</div>
               <div className="text-[8px] font-bold mt-1 uppercase">
@@ -380,7 +379,7 @@ export default function Home() {
               {/* Column 3: Panels */}
               <div className="space-y-5 flex flex-col h-[520px]">
                 <div className="h-[250px]">
-                  <IdentityPanel 
+                  <IdentityPanel
                     verification={verification}
                     did={targetDid}
                     onVerify={handleVerifyZkp}
@@ -413,7 +412,7 @@ export default function Home() {
           {activeTab === "ssi" && (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5 h-[600px]">
               <div className="md:col-span-1">
-                <IdentityPanel 
+                <IdentityPanel
                   verification={verification}
                   did={targetDid}
                   onVerify={handleVerifyZkp}
