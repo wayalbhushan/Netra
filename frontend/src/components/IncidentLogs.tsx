@@ -7,11 +7,13 @@ interface IncidentLogsProps {
 }
 
 export default function IncidentLogs({ logs }: IncidentLogsProps) {
-  const terminalEndRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to the bottom of terminal feed on log updates
+  // Auto-scroll to the bottom of the container scroll height on log updates
   useEffect(() => {
-    terminalEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (containerRef.current) {
+      containerRef.current.scrollTop = containerRef.current.scrollHeight;
+    }
   }, [logs]);
 
   return (
@@ -25,7 +27,10 @@ export default function IncidentLogs({ logs }: IncidentLogsProps) {
       </div>
 
       {/* Terminal logs list */}
-      <div className="flex-1 p-4 overflow-y-auto space-y-1 bg-black/45 scrollbar-thin scrollbar-thumb-zinc-800 scrollbar-track-transparent">
+      <div 
+        ref={containerRef}
+        className="flex-1 p-4 overflow-y-auto space-y-1 bg-black/45 scrollbar-thin scrollbar-thumb-zinc-800 scrollbar-track-transparent"
+      >
         {logs.length === 0 ? (
           <div className="text-zinc-600 text-center py-8">
             [ AWAITING INCOMING WS STREAM PAYLOADS... ]
@@ -55,7 +60,6 @@ export default function IncidentLogs({ logs }: IncidentLogsProps) {
             );
           })
         )}
-        <div ref={terminalEndRef} />
       </div>
     </div>
   );
