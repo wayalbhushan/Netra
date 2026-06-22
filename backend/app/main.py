@@ -1,6 +1,11 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+# Import services to trigger model load/train on startup
+from app.services.anomaly import anomaly_detector_service
+from app.api.endpoints import router as api_router
+from app.api.websockets import router as ws_router
+
 app = FastAPI(
     title="NETRA API",
     description="Decentralized Tourist Safety Ecosystem Backend",
@@ -16,6 +21,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Register API and WebSocket routers
+app.include_router(api_router)
+app.include_router(ws_router)
+
 @app.get("/health", tags=["System"])
 async def health_check():
     """
@@ -26,6 +35,6 @@ async def health_check():
         "system": "NETRA Command Backend",
         "services": {
             "web3_sim": "initialized",
-            "anomaly_detector": "ready"
+            "anomaly_detector": "ready" if anomaly_detector_service.model is not None else "failed"
         }
     }
